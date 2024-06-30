@@ -5,9 +5,9 @@ import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 let gallery = new SimpleLightbox('.gallery a');
 const loadElem = document.querySelector('.loader');
+const listElem = document.querySelector('.img-list');
 const BtnLoad = document.querySelector('button[type=button]');
-import { getArticles } from "./js/pixabay-api";
-
+import { getArticles } from './js/pixabay-api';
 
 hideSpinner();
 hideLoad();
@@ -24,8 +24,6 @@ let currentPage = 1;
 let totalPages = 0;
 const PAGE_SIZE = 15;
 
-
-
 // ==========================================
 refs.formElem.addEventListener('submit', onFormSubmit);
 
@@ -35,97 +33,52 @@ async function onFormSubmit(e) {
   // showSpinner();
   currentPage = 1;
   refs.articleListElem.innerHTML = '';
-  
+
   const ok = query.trim() !== '';
   if (!ok) {
-        hideSpinner();
-        hideLoad();
-        iziToast.error({
-            message: 'Info Search input must be filled!',
-        });
+    hideSpinner();
+    hideLoad();
+    iziToast.error({
+      message: 'Info Search input must be filled!',
+    });
 
-        return;
-    }
-   try {
-  const data = await getArticles(query,currentPage);
-  hideSpinner();
-      if (data.total == 0) {
-         iziToast.info({
+    return;
+  }
+  try {
+    const data = await getArticles(query, currentPage);
+    console.log(data);
+    hideSpinner();
+    if (data.total == 0) {
+      hideLoad();
+      iziToast.info({
         title: 'Sorry,',
-        message: "there are no images matching your search query. Please try again!",
+        message:
+          'there are no images matching your search query. Please try again!',
       });
+      return;
     }
- totalPages = data.total_pages;
-  renderArticles(data.hits);
-  // updateStatusObserver();
-  hideSpinner();
-  showLoad();
+    totalPages = data.total_pages;
+    renderArticles(data.hits);
+    showLoad();
+    scrollElem();
 
-   }
-   catch (err) {
-        newsApi.totalResult = 0;
-        iziToast.error({
-          title: 'Error1',
-          message: err.message,
-        });
-      }
-  
-
-    
-  if (currentPage == data.total_pages) { 
-    iziToast.info({
-      title: "info",
-      message: "Were sorry, but you've reached the end of search results.",
-    })
-
+    if (data.hits.length < 15) {
+      hideLoad();
+      iziToast.info({
+        title: 'info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+    } else {
+      showSpinner();
     }
-
+  } catch (err) {
+    //totalResult = 0;
+    iziToast.error({
+      title: 'Error1',
+      message: err.message,
+    });
+  }
 }
-
-
-// async function onFormSubmit(e) {
-
-//   e.preventDefault();
-//   showSpinner();
-
-//   newsApi.query = e.target.elements.query.value.trim();
-//   newsApi.page = 1;
-  
-//   refs.articleListElem.innerHTML = '';
-  
-//   const ok = newsApi.query.trim() !== '';
-//    if (!ok) {
-//         hideSpinner();
-//         iziToast.error({
-//             message: 'Info Search input must be filled!',
-//         });
-//         return;
-//     }
-
-//   try {
-//     const data = await newsApi.getArticles();
-//     hideSpinner();
-//     if (data.total == 0) {
-//        iziToast.info({
-//       title: 'Sorry,',
-//       message: "there are no images matching your search query. Please try again!",
-//     });
-
-//     }
-  
-//     newsApi.totalResult = data.totalResults;
-
-//     renderArticles(data.hits);
-//   } catch (err) {
-//     newsApi.totalResult = 0;
-//     iziToast.error({
-//       title: 'Error1',
-//       message: err.message,
-//     });
-//   }
-// 
-//   hideSpinner();
-// }
 
 function articlesTemplate(articles) {
   return articles.map(articleTemplate).join('');
@@ -153,30 +106,41 @@ function hideLoad() {
   BtnLoad.classList.add('visually-hidden');
 }
 
-
 const lightbox = new SimpleLightbox('.gallery a', {
   captionDelay: 250,
   captionsData: 'alt',
 });
 
-console.log("shut down");
-  
-BtnLoad.addEventListener('click', async () => { 
- 
- // query = e.target.elements.query.value.trim();
+BtnLoad.addEventListener('click', async () => {
   showSpinner();
-  currentPage ++;
-  console.log("load++++");
-  const data = await getArticles(query,currentPage);
+  currentPage++;
+  const data = await getArticles(query, currentPage);
   totalPages = data.total_pages;
   renderArticles(data.hits);
-  // updateStatusObserver();
   hideSpinner();
-  if (currentPage == data.total_pages) { 
-    iziToast.info({
-      title: "info",
-      message: "Were sorry, but you've reached the end of search results.",
-    })
+  scrollElem();
+  console.log(data.hits);
+  console.log(data.hits);
+
+  const mas = data.hits;
+  if (mas.length < 15) {
     hideLoad();
-    }
-})
+    iziToast.info({
+      title: 'info',
+      message: "We're sorry, but you've reached the end of search results.",
+    });
+  } else {
+    showSpinner();
+  }
+});
+
+function scrollElem() {
+  const liEl = listElem.children[0];
+
+  const height = liEl.getBoundingClientRect().height;
+
+  window.scrollBy({
+    top: height * 2,
+    behavior: 'smooth',
+  });
+}
