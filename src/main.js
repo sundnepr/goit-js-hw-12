@@ -46,7 +46,7 @@ async function onFormSubmit(e) {
   }
   try {
     const data = await getArticles(query, currentPage);
-    console.log(data);
+    // console.log(data);
     hideSpinner();
     if (data.total == 0) {
       hideLoad();
@@ -60,7 +60,7 @@ async function onFormSubmit(e) {
     totalPages = data.total_pages;
     renderArticles(data.hits);
     showLoad();
-    scrollElem();
+    // scrollElem();
 
     if (data.hits.length < 15) {
       hideLoad();
@@ -69,7 +69,8 @@ async function onFormSubmit(e) {
         message: "We're sorry, but you've reached the end of search results.",
       });
     } else {
-      showSpinner();
+      // showSpinner();
+      hideSpinner();
     }
   } catch (err) {
     //totalResult = 0;
@@ -114,13 +115,48 @@ const lightbox = new SimpleLightbox('.gallery a', {
 BtnLoad.addEventListener('click', async () => {
   showSpinner();
   currentPage++;
-  const data = await getArticles(query, currentPage);
+  // const data = await getArticles(query, currentPage);
+
+  try {
+    const data = await getArticles(query, currentPage);
+    // console.log(data);
+    hideSpinner();
+    if (data.total == 0) {
+      hideLoad();
+      iziToast.info({
+        title: 'Sorry,',
+        message:
+          'there are no images matching your search query. Please try again!',
+      });
+      return;
+    }
+    totalPages = data.total_pages;
+    renderArticles(data.hits);
+    showLoad();
+    scrollElem();
+
+    if (data.hits.length < 15) {
+      hideLoad();
+      iziToast.info({
+        title: 'info',
+        message: "We're sorry, but you've reached the end of search results.",
+      });
+    } else {
+      // showSpinner();
+      hideSpinner();
+    }
+  } catch (err) {
+    //totalResult = 0;
+    iziToast.error({
+      title: 'Error1',
+      message: err.message,
+    });
+  }
+
   totalPages = data.total_pages;
   renderArticles(data.hits);
   hideSpinner();
   scrollElem();
-  console.log(data.hits);
-  console.log(data.hits);
 
   const mas = data.hits;
   if (mas.length < 15) {
@@ -130,7 +166,8 @@ BtnLoad.addEventListener('click', async () => {
       message: "We're sorry, but you've reached the end of search results.",
     });
   } else {
-    showSpinner();
+    // showSpinner();
+    hideSpinner();
   }
 });
 
